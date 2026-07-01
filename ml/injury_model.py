@@ -22,7 +22,12 @@ import pandas as pd
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, StackingClassifier
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+    StackingClassifier,
+)
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -98,8 +103,15 @@ class InjuryEnsembleModel(BaseEstimator, ClassifierMixin):
     precision_floor=0.65 (v3) → meilleur recall clinique.
     """
 
-    def __init__(self, precision_floor: float = 0.65):
+    def __init__(
+        self,
+        precision_floor: float = 0.0,
+        threshold_beta: float = 0.5,
+        min_recall: float = 0.08,
+    ):
         self.precision_floor = precision_floor
+        self.threshold_beta = threshold_beta
+        self.min_recall = min_recall
         self.lr_pipeline_: Pipeline | None = None
         self.stack_: CalibratedClassifierCV | None = None
         self.threshold_: float = 0.5
@@ -126,35 +138,54 @@ class InjuryEnsembleModel(BaseEstimator, ClassifierMixin):
         gb = Pipeline([
             ("imputer", SimpleImputer(strategy="median")),
             ("clf",     GradientBoostingClassifier(
-                n_estimators=100, max_depth=3, learning_rate=0.05,
-                subsample=0.85, random_state=42)),
+                n_estimators=140, max_depth=3, learning_rate=0.04,
+                subsample=0.80, random_state=42)),
         ])
         rf = Pipeline([
             ("imputer", SimpleImputer(strategy="median")),
             ("clf",     RandomForestClassifier(
-                n_estimators=200, max_depth=8, min_samples_leaf=4,
-                class_weight="balanced", n_jobs=-1, random_state=42)),
+                n_estimators=300, max_depth=10, min_samples_leaf=3,
+                max_features="sqrt", class_weight="balanced_subsample",
+                n_jobs=-1, random_state=42)),
+        ])
+        et = Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("clf",     ExtraTreesClassifier(
+                n_estimators=250, max_depth=12, min_samples_leaf=3,
+                max_features="sqrt", class_weight="balanced",
+                n_jobs=-1, random_state=43)),
         ])
         stack = StackingClassifier(
-            estimators=[("lr", lr), ("gb", gb), ("rf", rf)],
-            final_estimator=LogisticRegression(C=1.0, max_iter=1000, random_state=42),
-            stack_method="predict_proba", n_jobs=-1, passthrough=False, cv=3,
+            estimators=[("lr", lr), ("gb", gb), ("rf", rf), ("et", et)],
+            final_estimator=Pipeline([
+                ("scaler", StandardScaler()),
+                ("clf", LogisticRegression(
+                    C=0.7, max_iter=3000, class_weight="balanced", random_state=42)),
+            ]),
+            stack_method="predict_proba", n_jobs=None, passthrough=False, cv=3,
         )
         return CalibratedClassifierCV(stack, method="isotonic", cv=3)
 
-    def fit(self, X, y):
+    def fit(self, X, y, threshold_data=None):
         self.lr_pipeline_ = self._make_lr_pipeline()
         self.lr_pipeline_.fit(X, y)
         self.stack_ = self._make_stack()
         self.stack_.fit(X, y)
 
-        # Threshold: maximise F1 under precision >= floor (v3: floor=0.65)
-        proba = self.stack_.predict_proba(X)[:, 1]
-        prec, rec, thr = precision_recall_curve(y, proba)
+        if threshold_data is None:
+            X_thr, y_thr = X, y
+        else:
+            X_thr, y_thr = threshold_data
+
+        proba = self.stack_.predict_proba(X_thr)[:, 1]
+        prec, rec, thr = precision_recall_curve(y_thr, proba)
         thr_full = np.concatenate([[0.0], thr])
-        f1 = 2 * prec * rec / np.clip(prec + rec, 1e-9, None)
-        ok = prec >= self.precision_floor
-        best = int(np.argmax(np.where(ok, f1, -1))) if ok.any() else int(np.argmax(f1))
+        beta2 = self.threshold_beta ** 2
+        fbeta = (1 + beta2) * prec * rec / np.clip((beta2 * prec) + rec, 1e-9, None)
+        ok = rec >= self.min_recall
+        if self.precision_floor > 0:
+            ok &= prec >= self.precision_floor
+        best = int(np.argmax(np.where(ok, fbeta, -1))) if ok.any() else int(np.argmax(fbeta))
         self.threshold_ = float(np.clip(thr_full[best], 0.05, 0.95))
         return self
 
@@ -170,7 +201,7 @@ class InjuryEnsembleModel(BaseEstimator, ClassifierMixin):
 
 
 def make_model() -> InjuryEnsembleModel:
-    return InjuryEnsembleModel(precision_floor=0.65)
+    return InjuryEnsembleModel(precision_floor=0.0, threshold_beta=0.5, min_recall=0.08)
 
 
 def _eval(model, X_test, y_test, label=""):
@@ -203,18 +234,21 @@ def train_model(db_path: str = DB_PATH, verbose: bool = True) -> tuple:
         print(f"Dataset    : {len(df):,} sessions | {len(FEATURE_COLUMNS)} features")
         print(f"Injury rate: {y.mean():.1%}")
 
-    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    X_fit, X_te, y_fit, y_te = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y)
+    X_tr, X_thr, y_tr, y_thr = train_test_split(
+        X_fit, y_fit, test_size=0.2, random_state=43, stratify=y_fit)
     model = make_model()
-    model.fit(X_tr, y_tr)
+    model.fit(X_tr, y_tr, threshold_data=(X_thr, y_thr))
 
     # Always compute metrics for reporting, even if not printing to console
-    report_lines.append("\n── Global model (precision_floor=0.65, recall-optimised) ──")
+    report_lines.append("\n-- Global model (F0.5 precision-optimised threshold) --")
     auc, f1, prec, rec, line = _eval(model, X_te, y_te, "Global")
     report_lines.append(line)
     report_lines.append(f"  AUC={auc:.4f}  F1={f1:.4f}  Precision={prec:.4f}  Recall={rec:.4f}")
     
     if verbose:
-        print(f"\n── Global model (precision_floor=0.65, recall-optimised) ──")
+        print(f"\n-- Global model (F0.5 precision-optimised threshold) --")
         print(line)
         print(f"  AUC={auc:.4f}  F1={f1:.4f}  Precision={prec:.4f}  Recall={rec:.4f}")
         print(classification_report(y_te, (model.predict_proba(X_te)[:,1]>=model.threshold_).astype(int),
@@ -223,8 +257,8 @@ def train_model(db_path: str = DB_PATH, verbose: bool = True) -> tuple:
     joblib.dump(model, MODEL_PATH)
     joblib.dump(FEATURE_COLUMNS, FEATURES_PATH)
     if verbose:
-        print(f"Global model saved → {MODEL_PATH}")
-    report_lines.append(f"\nGlobal model saved → {MODEL_PATH}")
+        print(f"Global model saved -> {MODEL_PATH}")
+    report_lines.append(f"\nGlobal model saved -> {MODEL_PATH}")
     
     return model, "\n".join(report_lines)
 
@@ -243,9 +277,9 @@ def train_sport_models(db_path: str = DB_PATH, verbose: bool = True) -> tuple:
     report_lines = []
 
     # Always add header to report
-    report_lines.append(f"\n── Sport-specific models ({len(sports)} sports) ──")
+    report_lines.append(f"\n-- Sport-specific models ({len(sports)} sports) --")
     if verbose:
-        print(f"\n── Sport-specific models ({len(sports)} sports) ──")
+        print(f"\n-- Sport-specific models ({len(sports)} sports) --")
 
     for sport in sorted(sports):
         dfs = df[df["sport"] == sport]
@@ -253,17 +287,19 @@ def train_sport_models(db_path: str = DB_PATH, verbose: bool = True) -> tuple:
         y   = dfs["injury_label"].astype(int)
 
         if len(dfs) < 200 or y.nunique() < 2:
-            skip_msg = f"  {sport:<12s} — skipped (n={len(dfs)})"
+            skip_msg = f"  {sport:<12s} - skipped (n={len(dfs)})"
             if verbose:
-                print(f"  {sport:<12s} — skipped (n={len(dfs)}, labels={y.nunique()})")
+                print(f"  {sport:<12s} - skipped (n={len(dfs)}, labels={y.nunique()})")
             report_lines.append(skip_msg)
             continue
 
-        X_tr, X_te, y_tr, y_te = train_test_split(
+        X_fit, X_te, y_fit, y_te = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y)
+        X_tr, X_thr, y_tr, y_thr = train_test_split(
+            X_fit, y_fit, test_size=0.2, random_state=43, stratify=y_fit)
 
-        m = InjuryEnsembleModel(precision_floor=0.60)  # slightly lower per sport
-        m.fit(X_tr, y_tr)
+        m = InjuryEnsembleModel(precision_floor=0.0, threshold_beta=0.5, min_recall=0.08)
+        m.fit(X_tr, y_tr, threshold_data=(X_thr, y_thr))
 
         path = os.path.join(SPORT_MODELS_DIR, f"{sport.replace('/','_')}.pkl")
         joblib.dump(m, path)
@@ -276,8 +312,8 @@ def train_sport_models(db_path: str = DB_PATH, verbose: bool = True) -> tuple:
             pass  # metrics already printed by _eval
 
     if verbose:
-        print(f"\nSport models saved → {SPORT_MODELS_DIR}/")
-    report_lines.append(f"\nSport models saved → {SPORT_MODELS_DIR}/")
+        print(f"\nSport models saved -> {SPORT_MODELS_DIR}/")
+    report_lines.append(f"\nSport models saved -> {SPORT_MODELS_DIR}/")
     
     return results, "\n".join(report_lines)
 
@@ -292,13 +328,15 @@ def load_sport_model(sport: str) -> InjuryEnsembleModel | None:
 
 
 if __name__ == "__main__":
+    from importlib import import_module
     import sys
+    injury_model = import_module("ml.injury_model")
     if "--sport" in sys.argv:
-        _, report = train_sport_models()
+        _, report = injury_model.train_sport_models()
         print(report)
     else:
-        model, report = train_model()
+        model, report = injury_model.train_model()
         print(report)
-        print("\nTraining sport-specific models…")
-        _, report_sports = train_sport_models()
+        print("\nTraining sport-specific models...")
+        _, report_sports = injury_model.train_sport_models()
         print(report_sports)
