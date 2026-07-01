@@ -12,7 +12,7 @@ Nouveautés v2 :
 """
 from __future__ import annotations
 import sys, os, sqlite3, io
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -59,6 +59,9 @@ THEME_LIGHT = "ui/theme_light.qss"
 COLOR_SUCCESS = "#22C55E"
 COLOR_WARNING = "#F59E0B"
 COLOR_DANGER  = "#EF4444"
+
+SPORT_MODEL_MIN_HISTORY = 7
+SPORT_MODEL_MAX_WEIGHT = 0.75
 
 
 def _risk_color(val: float) -> QColor:
@@ -259,6 +262,7 @@ class MainWindow(QMainWindow):
         self.user = user
         self.db   = Database(db_path=DB_PATH)
         self.global_model = joblib.load(MODEL_PATH)
+        self._sport_model_cache: dict[str, Any] = {}
         self._dark_mode = True
         self._team_df: Optional[pd.DataFrame] = None
         self._current_player_id: Optional[int] = None
@@ -513,6 +517,36 @@ class MainWindow(QMainWindow):
             self.notesResultsList.addItem(f"{date} — {pname} : {preview}…")
 
     # ── Single prediction (with trend + RTP) ───────────────────────────────
+    def _get_sport_model(self, sport: str):
+        if sport not in self._sport_model_cache:
+            self._sport_model_cache[sport] = load_sport_model(sport)
+        return self._sport_model_cache[sport]
+
+    def _sport_model_weight(self, history_len: int) -> float:
+        if history_len < SPORT_MODEL_MIN_HISTORY:
+            return 0.0
+        maturity = min(1.0, (history_len - SPORT_MODEL_MIN_HISTORY) / 28.0)
+        return 0.35 + (SPORT_MODEL_MAX_WEIGHT - 0.35) * maturity
+
+    def _predict_injury_proba(self, X: pd.DataFrame, sport: str, history_len: int):
+        global_proba = self.global_model.predict_proba(X)[:, 1]
+        sport_model = self._get_sport_model(sport)
+        sport_weight = self._sport_model_weight(history_len)
+
+        if sport_model is None or sport_weight <= 0.0:
+            return global_proba, self.global_model, "Global"
+
+        try:
+            sport_proba = sport_model.predict_proba(X)[:, 1]
+        except Exception as e:
+            print(f"Sport model fallback ({sport}): {e}")
+            return global_proba, self.global_model, "Global"
+
+        blended = (1.0 - sport_weight) * global_proba + sport_weight * sport_proba
+        explanation_model = sport_model if sport_weight >= 0.5 else self.global_model
+        label = f"Hybride global/{sport} ({sport_weight:.0%} sport)"
+        return blended, explanation_model, label
+
     def _run_prediction(self):
         pid = self.predictPlayerCombo.currentData()
         if pid is None: return
@@ -527,13 +561,12 @@ class MainWindow(QMainWindow):
             sport = pd.read_sql(
                 f"SELECT sport FROM players WHERE id={int(pid)}", cx
             ).iloc[0, 0]
-        model = load_sport_model(sport) or self.global_model
-
         X_all = ph[FEATURE_COLUMNS].fillna(ph[FEATURE_COLUMNS].median())
-        proba_all = model.predict_proba(X_all)[:, 1]
+        proba_all, explanation_model, model_label = self._predict_injury_proba(
+            X_all, sport, len(ph))
         prob_now  = float(proba_all[-1])
 
-        self.riskLabel.setText(f"Risque : {prob_now:.1%}")
+        self.riskLabel.setText(f"Risque : {prob_now:.1%} ({model_label})")
         self.riskLabel.setProperty("risk",
             "high" if prob_now>=0.66 else "medium" if prob_now>=0.33 else "low")
         self.riskLabel.style().unpolish(self.riskLabel); self.riskLabel.style().polish(self.riskLabel)
@@ -573,7 +606,7 @@ class MainWindow(QMainWindow):
 
         # SHAP (medical only)
         if can_see_shap(self.user):
-            self._render_shap(model, X_all, X_all.iloc[[-1]])
+            self._render_shap(explanation_model, X_all, X_all.iloc[[-1]])
         else:
             self.shap_ax.clear()
             self.shap_ax.text(0.5, 0.5, "🔒 Accès SHAP réservé au staff médical",
@@ -724,6 +757,7 @@ class MainWindow(QMainWindow):
             prog.close()
             m, report_global, report_sports = result
             self.global_model = m
+            self._sport_model_cache.clear()
             self.accuracyLabel.setText(f"Seuil retenu : {m.threshold_:.3f}")
             
             # Display metrics in message box
