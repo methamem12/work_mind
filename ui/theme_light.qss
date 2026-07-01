@@ -1,0 +1,133 @@
+/* =========================================================================
+   Athlete AI — Light Sport theme (clinique / bureau lumineux)
+   Tokens
+     bg base     #F5F7FA   surface #FFFFFF   elevated #FFFFFF
+     border      #D8DEE6   border-hi #B8C2D0
+     text        #1B2330   muted   #5B6573
+     accent      #00897B   accent-alt #2563EB
+     warn        #B45309   danger   #C0392B   success #16A34A
+   ========================================================================= */
+
+* { font-family: "Inter", "Segoe UI", "SF Pro Display", Arial, sans-serif; }
+
+QMainWindow, QDialog, QWidget {
+    background-color: #F5F7FA;
+    color: #1B2330;
+    font-size: 13px;
+}
+
+QLabel { color: #1B2330; background: transparent; }
+QLabel[muted="true"] { color: #5B6573; }
+QLabel#titleLabel, QLabel#sectionTitle, QLabel#appTitleLabel {
+    font-size: 16pt; font-weight: 600;
+    padding: 6px 12px;
+    border-left: 3px solid #00897B;
+    color: #1B2330;
+}
+
+/* ---- Frames / panels ---- */
+QFrame, QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #D8DEE6;
+    border-radius: 6px;
+}
+QGroupBox {
+    margin-top: 14px;
+    padding-top: 14px;
+    font-weight: 600;
+    color: #00897B;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 6px;
+    color: #00897B;
+}
+
+/* ---- Buttons ---- */
+QPushButton {
+    background-color: #FFFFFF;
+    border: 1px solid #B8C2D0;
+    border-radius: 4px;
+    padding: 6px 14px;
+    color: #1B2330;
+    font-weight: 600;
+}
+QPushButton:hover { background-color: #EEF2F6; border-color: #00897B; }
+QPushButton:pressed { background-color: #E3E9F0; }
+QPushButton:disabled { color: #B8C2D0; }
+
+/* ---- Inputs ---- */
+QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #D8DEE6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #1B2330;
+    selection-background-color: #00897B;
+}
+QLineEdit:focus, QComboBox:focus, QDoubleSpinBox:focus {
+    border: 1px solid #00897B;
+}
+
+/* ---- Tables ---- */
+QTableWidget, QListWidget {
+    background-color: #FFFFFF;
+    alternate-background-color: #F5F7FA;
+    border: 1px solid #D8DEE6;
+    gridline-color: #E3E9F0;
+    color: #1B2330;
+    selection-background-color: #D1F2EA;
+    selection-color: #1B2330;
+}
+QHeaderView::section {
+    background-color: #EEF2F6;
+    color: #1B2330;
+    padding: 5px;
+    border: none;
+    border-bottom: 2px solid #00897B;
+    font-weight: 700;
+}
+
+/* ---- Tabs ---- */
+QTabWidget::pane { border: 1px solid #D8DEE6; border-radius: 6px; }
+QTabBar::tab {
+    background: #EEF2F6; color: #5B6573;
+    padding: 8px 18px; margin-right: 2px;
+    border-top-left-radius: 6px; border-top-right-radius: 6px;
+}
+QTabBar::tab:selected {
+    background: #FFFFFF; color: #00897B; font-weight: 700;
+    border-bottom: 2px solid #00897B;
+}
+
+/* ---- Progress bar ---- */
+QProgressBar {
+    background-color: #EEF2F6;
+    border: 1px solid #D8DEE6;
+    border-radius: 4px;
+    text-align: center;
+    color: #1B2330;
+}
+QProgressBar::chunk {
+    background-color: #00897B;
+    border-radius: 3px;
+}
+
+/* ---- Risk-aware labels (reused property) ---- */
+QLabel[risk="low"]    { color: #16A34A; }
+QLabel[risk="medium"] { color: #B45309; }
+QLabel[risk="high"]   { color: #C0392B; }
+
+/* ---- Scrollbars ---- */
+QScrollBar:vertical { background: #EEF2F6; width: 10px; }
+QScrollBar::handle:vertical { background: #B8C2D0; border-radius: 5px; }
+QScrollBar::handle:vertical:hover { background: #00897B; }
+
+/* ---- TopBar frame ---- */
+QFrame#topBar { background-color: #FFFFFF; border-bottom: 1px solid #D8DEE6; }
+QFrame#statsBar { background-color: #FFFFFF; border: none; }
+
+/* ---- Splitter ---- */
+QSplitter::handle { background-color: #D8DEE6; }
+QSplitter::handle:hover { background-color: #00897B; }

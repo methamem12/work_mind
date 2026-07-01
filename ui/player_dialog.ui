@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlayerDialog</class>
+ <widget class="QDialog" name="PlayerDialog">
+
+  <property name="windowTitle">
+   <string>Add Player</string>
+  </property>
+
+  <layout class="QFormLayout">
+
+   <!-- NAME -->
+   <item row="0" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Player Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="playerNameEdit"/>
+   </item>
+
+   <!-- POSITION -->
+   <item row="1" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="positionCombo">
+     <item><property name="text"><string>GK</string></property></item>
+     <item><property name="text"><string>DEF</string></property></item>
+     <item><property name="text"><string>MID</string></property></item>
+     <item><property name="text"><string>FW</string></property></item>
+    </widget>
+   </item>
+
+   <!-- AGE -->
+   <item row="2" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Age</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QSpinBox" name="ageSpin"/>
+   </item>
+
+   <!-- HEIGHT -->
+   <item row="3" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Height (m)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QDoubleSpinBox" name="heightSpin"/>
+   </item>
+
+   <!-- WEIGHT -->
+   <item row="4" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Weight (kg)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QDoubleSpinBox" name="weightSpin"/>
+   </item>
+
+   <!-- FOOT -->
+   <item row="5" column="0">
+    <widget class="QLabel">
+     <property name="text">
+      <string>Dominant Foot</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QComboBox" name="footCombo">
+     <item><property name="text"><string>Right</string></property></item>
+     <item><property name="text"><string>Left</string></property></item>
+     <item><property name="text"><string>Both</string></property></item>
+    </widget>
+   </item>
+
+   <!-- BUTTONS -->
+   <item row="6" column="0" colspan="2">
+    <layout class="QHBoxLayout">
+
+     <item>
+      <widget class="QPushButton" name="savePlayerBtn">
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="cancelPlayerBtn">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+
+    </layout>
+   </item>
+
+  </layout>
+
+ </widget>
+</ui>

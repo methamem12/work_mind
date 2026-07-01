@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SessionDialog</class>
+ <widget class="QDialog" name="SessionDialog">
+  <property name="windowTitle"><string>Nouvelle séance — saisie complète</string></property>
+  <property name="minimumSize"><size><width>720</width><height>620</height></size></property>
+  <layout class="QVBoxLayout">
+
+   <item>
+    <widget class="QTabWidget" name="sessionTabs">
+
+     <!-- ============== ONGLET CONTEXTE ============== -->
+     <widget class="QWidget" name="tabContext">
+      <attribute name="title"><string>Contexte</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Date</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDateEdit" name="dateEdit"><property name="calendarPopup"><bool>true</bool></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Type de séance</string></property></widget></item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="sessionTypeCombo">
+         <item><property name="text"><string>Training</string></property></item>
+         <item><property name="text"><string>Match</string></property></item>
+         <item><property name="text"><string>Competition</string></property></item>
+         <item><property name="text"><string>Recovery</string></property></item>
+         <item><property name="text"><string>Gym</string></property></item>
+        </widget>
+       </item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Météo</string></property></widget></item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="weatherCombo">
+         <item><property name="text"><string>Normal</string></property></item>
+         <item><property name="text"><string>Hot</string></property></item>
+         <item><property name="text"><string>Cold</string></property></item>
+         <item><property name="text"><string>Rainy</string></property></item>
+         <item><property name="text"><string>Indoor</string></property></item>
+        </widget>
+       </item>
+
+       <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Surface</string></property></widget></item>
+       <item row="3" column="1"><widget class="QLineEdit" name="surfaceEdit"/></item>
+
+       <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Durée (minutes)</string></property></widget></item>
+       <item row="4" column="1"><widget class="QSpinBox" name="trainingMinutesSpin"><property name="maximum"><number>400</number></property><property name="value"><number>90</number></property></widget></item>
+
+       <item row="5" column="0"><widget class="QLabel"><property name="text"><string>RPE (1–10)</string></property></widget></item>
+       <item row="5" column="1"><widget class="QSpinBox" name="rpeSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>10</number></property><property name="value"><number>6</number></property></widget></item>
+
+       <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Blessures antérieures</string></property></widget></item>
+       <item row="6" column="1"><widget class="QSpinBox" name="previousInjuriesSpin"><property name="maximum"><number>20</number></property></widget></item>
+
+       <item row="7" column="0"><widget class="QLabel"><property name="text"><string>Blessure survenue</string></property></widget></item>
+       <item row="7" column="1"><widget class="QCheckBox" name="injuryCheck"/></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET GPS / CHARGE ============== -->
+     <widget class="QWidget" name="tabGPS">
+      <attribute name="title"><string>GPS / Charge</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>distance_km — distance totale (km)</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDoubleSpinBox" name="distanceKmSpin"><property name="maximum"><double>250.0</double></property><property name="value"><double>8.0</double></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>sprint_distance_km (km)</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="sprintDistanceKmSpin"><property name="decimals"><number>3</number></property><property name="maximum"><double>20.0</double></property></widget></item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>sprints_count (&gt; 25 km/h)</string></property></widget></item>
+       <item row="2" column="1"><widget class="QSpinBox" name="sprintsCountSpin"><property name="maximum"><number>500</number></property></widget></item>
+
+       <item row="3" column="0"><widget class="QLabel"><property name="text"><string>hid_km — haute intensité &gt; 19,8 km/h (km)</string></property></widget></item>
+       <item row="3" column="1"><widget class="QDoubleSpinBox" name="hidKmSpin"><property name="maximum"><double>50.0</double></property></widget></item>
+
+       <item row="4" column="0"><widget class="QLabel"><property name="text"><string>acceleration_max (m/s²)</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="accMaxSpin"><property name="maximum"><double>15.0</double></property><property name="value"><double>7.0</double></property></widget></item>
+
+       <item row="5" column="0"><widget class="QLabel"><property name="text"><string>max_speed (km/h)</string></property></widget></item>
+       <item row="5" column="1"><widget class="QDoubleSpinBox" name="maxSpeedSpin"><property name="maximum"><double>50.0</double></property><property name="value"><double>26.0</double></property></widget></item>
+
+       <item row="6" column="0"><widget class="QLabel"><property name="text"><string>accelerations (nb)</string></property></widget></item>
+       <item row="6" column="1"><widget class="QSpinBox" name="accelerationsSpin"><property name="maximum"><number>500</number></property></widget></item>
+
+       <item row="7" column="0"><widget class="QLabel"><property name="text"><string>decelerations (nb)</string></property></widget></item>
+       <item row="7" column="1"><widget class="QSpinBox" name="decelerationsSpin"><property name="maximum"><number>500</number></property></widget></item>
+
+       <item row="8" column="0"><widget class="QLabel"><property name="text"><string>player_load (UA)</string></property></widget></item>
+       <item row="8" column="1"><widget class="QDoubleSpinBox" name="playerLoadSpin"><property name="maximum"><double>3000.0</double></property><property name="value"><double>500.0</double></property></widget></item>
+
+       <item row="9" column="0"><widget class="QLabel"><property name="text"><string>ACWR (auto si vide)</string></property></widget></item>
+       <item row="9" column="1"><widget class="QDoubleSpinBox" name="acwrSpin"><property name="decimals"><number>3</number></property><property name="maximum"><double>5.0</double></property><property name="value"><double>1.0</double></property></widget></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET BIOMÉTRIE ============== -->
+     <widget class="QWidget" name="tabBio">
+      <attribute name="title"><string>Biométrie</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>hrv_rmssd (ms)</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDoubleSpinBox" name="hrvRmssdSpin"><property name="maximum"><double>200.0</double></property><property name="value"><double>60.0</double></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>hrv_trend (% sur 7 j)</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="hrvTrendSpin"><property name="minimum"><double>-100.0</double></property><property name="maximum"><double>100.0</double></property></widget></item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>fc_repos (bpm)</string></property></widget></item>
+       <item row="2" column="1"><widget class="QSpinBox" name="fcReposSpin"><property name="maximum"><number>120</number></property><property name="value"><number>55</number></property></widget></item>
+
+       <item row="3" column="0"><widget class="QLabel"><property name="text"><string>fc_repos_alerte (+5 bpm baseline)</string></property></widget></item>
+       <item row="3" column="1"><widget class="QCheckBox" name="fcAlerteCheck"/></item>
+
+       <item row="4" column="0"><widget class="QLabel"><property name="text"><string>sommeil_h (heures)</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="sommeilHSpin"><property name="maximum"><double>14.0</double></property><property name="value"><double>7.5</double></property></widget></item>
+
+       <item row="5" column="0"><widget class="QLabel"><property name="text"><string>sommeil_qualite (1–5)</string></property></widget></item>
+       <item row="5" column="1"><widget class="QSpinBox" name="sommeilQSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>5</number></property><property name="value"><number>4</number></property></widget></item>
+
+       <item row="6" column="0"><widget class="QLabel"><property name="text"><string>fatigue perçue (1–10)</string></property></widget></item>
+       <item row="6" column="1"><widget class="QSpinBox" name="fatigueSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>10</number></property><property name="value"><number>4</number></property></widget></item>
+
+       <item row="7" column="0"><widget class="QLabel"><property name="text"><string>spo2 (%)</string></property></widget></item>
+       <item row="7" column="1"><widget class="QDoubleSpinBox" name="spo2Spin"><property name="minimum"><double>80.0</double></property><property name="maximum"><double>100.0</double></property><property name="value"><double>98.0</double></property></widget></item>
+
+       <item row="8" column="0"><widget class="QLabel"><property name="text"><string>jours_depuis_match</string></property></widget></item>
+       <item row="8" column="1"><widget class="QSpinBox" name="joursDepuisMatchSpin"><property name="maximum"><number>30</number></property><property name="value"><number>3</number></property></widget></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET MENTAL ============== -->
+     <widget class="QWidget" name="tabMental">
+      <attribute name="title"><string>Mental</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>motivation (1–10)</string></property></widget></item>
+       <item row="0" column="1"><widget class="QSpinBox" name="motivationSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>10</number></property><property name="value"><number>7</number></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>stress (1–10)</string></property></widget></item>
+       <item row="1" column="1"><widget class="QSpinBox" name="stressSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>10</number></property><property name="value"><number>3</number></property></widget></item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>reaction_ms</string></property></widget></item>
+       <item row="2" column="1"><widget class="QDoubleSpinBox" name="reactionMsSpin"><property name="minimum"><double>100.0</double></property><property name="maximum"><double>600.0</double></property><property name="value"><double>240.0</double></property></widget></item>
+
+       <item row="3" column="0"><widget class="QLabel"><property name="text"><string>charge_mentale (1–10)</string></property></widget></item>
+       <item row="3" column="1"><widget class="QSpinBox" name="chargeMentaleSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>10</number></property><property name="value"><number>5</number></property></widget></item>
+
+       <item row="4" column="0"><widget class="QLabel"><property name="text"><string>regularite_score (0–1)</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="regulariteSpin"><property name="maximum"><double>1.0</double></property><property name="singleStep"><double>0.05</double></property><property name="value"><double>0.8</double></property></widget></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET NUTRITION ============== -->
+     <widget class="QWidget" name="tabNutri">
+      <attribute name="title"><string>Nutrition</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>poids_variation_pct (%)</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDoubleSpinBox" name="poidsVariationSpin"><property name="minimum"><double>-5.0</double></property><property name="maximum"><double>5.0</double></property><property name="singleStep"><double>0.1</double></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>hydratation_score (1–8)</string></property></widget></item>
+       <item row="1" column="1"><widget class="QSpinBox" name="hydratationSpin"><property name="minimum"><number>1</number></property><property name="maximum"><number>8</number></property><property name="value"><number>3</number></property></widget></item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>ck_post (U/L)</string></property></widget></item>
+       <item row="2" column="1"><widget class="QDoubleSpinBox" name="ckPostSpin"><property name="maximum"><double>5000.0</double></property><property name="value"><double>250.0</double></property></widget></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET TESTS PHYSIQUES ============== -->
+     <widget class="QWidget" name="tabPhys">
+      <attribute name="title"><string>Tests physiques</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>vo2max (ml/kg/min)</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDoubleSpinBox" name="vo2maxSpin"><property name="maximum"><double>90.0</double></property><property name="value"><double>55.0</double></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>cmj_cm (saut CMJ, cm)</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="cmjCmSpin"><property name="maximum"><double>100.0</double></property><property name="value"><double>42.0</double></property></widget></item>
+
+       <item row="2" column="0"><widget class="QLabel"><property name="text"><string>rsa_index (%)</string></property></widget></item>
+       <item row="2" column="1"><widget class="QDoubleSpinBox" name="rsaIndexSpin"><property name="maximum"><double>100.0</double></property><property name="value"><double>90.0</double></property></widget></item>
+
+       <item row="3" column="0"><widget class="QLabel"><property name="text"><string>force_n (N)</string></property></widget></item>
+       <item row="3" column="1"><widget class="QDoubleSpinBox" name="forceNSpin"><property name="maximum"><double>1000.0</double></property><property name="value"><double>350.0</double></property></widget></item>
+
+       <item row="4" column="0"><widget class="QLabel"><property name="text"><string>fatigue_sprint_pct (%)</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="fatigueSprintSpin"><property name="maximum"><double>50.0</double></property><property name="value"><double>8.0</double></property></widget></item>
+      </layout>
+     </widget>
+
+     <!-- ============== ONGLET COMPOSITES ============== -->
+     <widget class="QWidget" name="tabComp">
+      <attribute name="title"><string>Composites</string></attribute>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel"><property name="text"><string>wellness_score (0–10) — auto si vide</string></property></widget></item>
+       <item row="0" column="1"><widget class="QDoubleSpinBox" name="wellnessSpin"><property name="maximum"><double>10.0</double></property><property name="value"><double>7.0</double></property></widget></item>
+
+       <item row="1" column="0"><widget class="QLabel"><property name="text"><string>perf_index (0–100) — auto si vide</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="perfIndexSpin"><property name="maximum"><double>100.0</double></property><property name="value"><double>65.0</double></property></widget></item>
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout">
+     <item><widget class="QPushButton" name="saveSessionBtn"><property name="text"><string>Enregistrer</string></property></widget></item>
+     <item><widget class="QPushButton" name="cancelSessionBtn"><property name="text"><string>Annuler</string></property></widget></item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+</ui>
